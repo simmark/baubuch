@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#1f3a30">
+<title>Baubuch</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<!-- Startseite der Web-Fassung (Variante A, v1.15b): öffentlich liegt nur diese Seite. Das eigentliche Baubuch
+     (Programm) und die Projektdaten liegen geschützt in Supabase und werden erst nach der Anmeldung geladen. -->
+<style>
+:root{--bg:#f1f2ee;--card:#fff;--ink:#1c2420;--muted:#5d6762;--line:#dcded8;--accent:#2f5e4b;--bad:#a8321e;--warnbg:#fbe9df}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+#lw{min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:max(24px,env(safe-area-inset-top)) 16px 24px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;max-width:540px;width:100%;display:flex;flex-direction:column;gap:12px;box-shadow:0 2px 12px #0000000d}
+h1{font-size:23px;margin:0}.logo{display:flex;align-items:center;gap:10px}.logo i{width:38px;height:38px;border-radius:10px;background:var(--accent);display:inline-block}
+p{margin:0}.muted{color:var(--muted);font-size:14px}.notice{background:var(--warnbg);border-left:4px solid #b4561d;padding:10px 12px;border-radius:8px}.bad{color:var(--bad)}
+label{display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:14px}
+input[type=text],input[type=email],textarea{font:inherit;padding:11px 12px;border:1px solid #c9ccc4;border-radius:10px;background:#fff;color:inherit;width:100%}
+textarea{min-height:72px;resize:vertical}
+.radio{flex-direction:row;align-items:flex-start;gap:8px;font-weight:400}.radio input{margin-top:4px}.radio small{color:var(--muted)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+button{font:inherit;font-weight:700;min-height:44px;padding:0 16px;border-radius:12px;border:1px solid #c9ccc4;background:#fff;color:var(--ink);cursor:pointer}
+button.pri{background:var(--accent);border-color:var(--accent);color:#fff}button:disabled{opacity:.6}
+.small{font-size:13px}.eyebrow{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
+progress{width:100%}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#141816;--card:#1e2421;--ink:#e9ece9;--muted:#a3aca7;--line:#333a36;--warnbg:#3a2a20}input[type=text],input[type=email],textarea,button{background:#252b28;color:var(--ink);border-color:#3d4541}button.pri{background:#3d7a62;border-color:#3d7a62}}
+</style>
+</head>
+<body>
+<div id="lw"><div class="card" id="lcard"><p class="muted">Baubuch wird geladen …</p></div></div>
+<script src="bb-config.js"></script>
+<script>
+(function () {
+  'use strict';
+  var LOADER = '1.17.0-offline';
+  var C = window.BB_CONFIG || null, card = document.getElementById('lcard'), sess = null, lastEmail = '';
+  var TITLE = (C && C.title) || 'Baubuch Mehrzweckgebäude Soest';
+  var WANT = [['viewer', 'Betrachter', 'Baustelle virtuell durchgehen, Stand und Fortschritt ansehen'], ['capture', 'Erfasser', 'Fotos und 360° aufnehmen, kommentieren, Leitungen eintragen'], ['editor', 'Bauleitung (Editor)', 'zusätzlich Wände und Modell bearbeiten']];
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function show(html) { card.innerHTML = '<div class="logo"><i></i><h1>' + esc(TITLE) + '</h1></div>' + html; }
+  function fmtDate(s) { var m = String(s || '').match(/^(\d{4})-(\d\d)-(\d\d)/); return m ? m[3] + '.' + m[2] + '.' + m[1] : ''; }
+  function on(id, fn) { var e = $(id); if (e) e.onclick = function (ev) { ev.preventDefault(); fn(); }; }
+  function msg(t, bad) { var e = $('lmsg'); if (e) { e.textContent = t; e.className = 'small' + (bad ? ' bad' : ' muted'); } }
+  /* ---- Speicher für das Programm (eigene Datenbank, unabhängig vom Baubuch) ---- */
+  function idb() { return new Promise(function (res, rej) { var r = indexedDB.open('bb-loader', 1); r.onupgradeneeded = function () { r.result.createObjectStore('f'); }; r.onsuccess = function () { res(r.result); }; r.onerror = function () { rej(r.error); }; }); }
+  function dbGet(k) { return idb().then(function (d) { return new Promise(function (res) { var q = d.transaction('f').objectStore('f').get(k); q.onsuccess = function () { res(q.result || null); }; q.onerror = function () { res(null); }; }); }).catch(function () { return null; }); }
+  function dbPut(k, v) { return idb().then(function (d) { return new Promise(function (res, rej) { var t = d.transaction('f', 'readwrite'); t.objectStore('f').put(v, k); t.oncomplete = function () { res(); }; t.onerror = function () { rej(t.error); }; }); }); }
+  /* ---- Server ---- */
+  function de(m) {
+    if (/expired or is invalid|otp_expired/i.test(m)) return 'Code falsch oder abgelaufen';
+    if (/rate limit/i.test(m)) return 'Zu viele Versuche – bitte kurz warten (Mailversand begrenzt)';
+    if (/Kein Mitglied/i.test(m)) return 'Kein Zugang zu diesem Projekt';
+    return m;
+  }
+  async function api(path, o) {
+    o = o || {}; var h = { apikey: C.anon };
+    if (sess && o.auth !== false) h.Authorization = 'Bearer ' + sess.access_token; else if (/^eyJ/.test(C.anon)) h.Authorization = 'Bearer ' + C.anon;
+    if (o.body !== undefined && !(o.body instanceof Blob)) h['Content-Type'] = 'application/json';
+    var r;
+    try { r = await fetch(C.url.replace(/\/+$/, '') + path, { method: o.method || (o.body !== undefined ? 'POST' : 'GET'), headers: Object.assign(h, o.headers || {}), body: o.body === undefined ? undefined : o.body instanceof Blob ? o.body : JSON.stringify(o.body), cache: 'no-store' }); }
+    catch (e) { throw new Error(navigator.onLine === false ? 'Kein Internet' : 'Server nicht erreichbar'); }
+    if (o.text && r.ok) return r.text();
+    var t = await r.text(), j = null; try { j = t ? JSON.parse(t) : null; } catch (e) { j = t; }
+    if (!r.ok) { var m = (j && (j.message || j.msg || j.error_description || (typeof j.error === 'string' ? j.error : null))) || ('HTTP ' + r.status); var er = new Error(de(m)); er.status = r.status; er.notFound = r.status === 404 || (j && String(j.statusCode) === '404'); throw er; }
+    return j;
+  }
+  function rpc(fn, a) { return api('/rest/v1/rpc/' + fn, { body: a || {} }); }
+  function setSess(j) { sess = { access_token: j.access_token, refresh_token: j.refresh_token, expires_at: Date.now() + (j.expires_in || 3600) * 1000, user: j.user ? { id: j.user.id, email: j.user.email } : null }; }
+  async function sendCode(em) { await api('/auth/v1/otp', { auth: false, body: { email: em, create_user: true } }); }
+  async function verify(em, code) { var last = null, ts = ['email', 'signup', 'magiclink']; for (var i = 0; i < ts.length; i++) { try { setSess(await api('/auth/v1/verify', { auth: false, body: { type: ts[i], email: em, token: String(code).trim() } })); return; } catch (e) { last = e; } } throw last; }
+  var APP = function () { return '/storage/v1/object/authenticated/baubuch/' + encodeURIComponent(C.project) + '/_app/'; };
+  var APPW = function () { return '/storage/v1/object/baubuch/' + encodeURIComponent(C.project) + '/_app/'; };
+  /* ---- Programm laden und starten ---- */
+  function boot(html, handoff) {
+    if (handoff) { window.__BB_HANDOFF = handoff; try { sessionStorage.setItem('bb-handoff', JSON.stringify(handoff)); } catch (e) {} }
+    window.BB_LOADER_VERSION = LOADER;
+    document.open(); document.write(html); document.close();
+  }
+  async function fetchApp() {
+    show('<p>Baubuch wird geladen …</p><progress></progress>');
+    var html;
+    try { html = await api(APP() + 'app.html', { text: true }); }
+    catch (e) {
+      if (e.notFound) { show('<p class="notice">Auf dem Server liegt noch kein Programm für die Web-Fassung.</p><p class="muted">Ein Admin lädt es einmal hoch: in der vollständigen Offline-Fassung unter Projekt › Online › „Programm für die Web-Fassung hochladen“ – oder direkt hier.</p><label>Datei <code>baubuch-app.html</code> (aus dem ZIP)<input type="file" id="lfile" accept=".html,text/html"></label><div class="row"><button class="pri" id="lup">Hochladen (nur Admin)</button><button id="lout">Abmelden</button></div><p id="lmsg" class="small muted"></p>'); on('lup', uploadHere); on('lout', logout); return; }
+      show('<p class="notice">' + esc(e.message) + '</p><div class="row"><button class="pri" id="lagain">Nochmal</button></div>'); on('lagain', fetchApp); return;
+    }
+    if (!/BB_LOADER\s*=\s*true/.test(html)) { show('<p class="notice">Die Datei auf dem Server ist kein Baubuch-Programm für die Web-Fassung.</p>'); return; }
+    var v = (html.match(/APP_VERSION = '([^']+)'/) || [])[1] || '?';
+    await dbPut('app', { html: html, version: v, at: new Date().toISOString() });
+    boot(html, { session: sess, email: lastEmail });
+  }
+  async function uploadHere() {
+    var f = $('lfile').files[0]; if (!f) { msg('Bitte die Datei baubuch-app.html wählen', true); return; }
+    var html = await f.text(); if (!/BB_LOADER\s*=\s*true/.test(html)) { msg('Das ist nicht die Datei baubuch-app.html aus dem ZIP.', true); return; }
+    var v = (html.match(/APP_VERSION = '([^']+)'/) || [])[1] || '?';
+    try {
+      msg('Lade hoch …');
+      await api(APPW() + 'app.html', { body: new Blob([html], { type: 'text/html' }), headers: { 'x-upsert': 'true', 'Content-Type': 'text/html' } });
+      await api(APPW() + 'version.json', { body: new Blob([JSON.stringify({ version: v, at: new Date().toISOString(), bytes: html.length })], { type: 'application/json' }), headers: { 'x-upsert': 'true', 'Content-Type': 'application/json' } });
+      fetchApp();
+    } catch (e) { msg(e.status === 403 || e.status === 400 ? 'Nur Admins dürfen das Programm hochladen.' : e.message, true); }
+  }
+  async function logout() { try { await api('/auth/v1/logout', { method: 'POST' }); } catch (e) {} sess = null; start(); }
+  /* ---- Ansichten ---- */
+  function start() {
+    show('<p>Digitales Baubuch: Baustelle in 360° und 3D, Pläne, Leitungen und Baufortschritt.</p><p class="muted">Pläne, Projektdaten und das Programm selbst sind geschützt und nur für zugelassene Personen.</p>' +
+      '<div class="row"><button class="pri" id="gatelogin">Anmelden</button><button id="gatereq">Zugang anfragen</button></div>' +
+      '<p class="small muted">Noch kein Zugang? „Zugang anfragen“: Name, E-Mail, gewünschte Rolle und – wenn du möchtest – ein Satz, wofür. Die E-Mail-Adresse wird mit einem Code bestätigt; ein Admin entscheidet.</p>');
+    on('gatelogin', login); on('gatereq', function () { request(null); });
+  }
+  function login() {
+    var sent = false;
+    show('<span class="eyebrow">Anmelden</span><label>E-Mail<input type="email" id="lemail" autocomplete="email" placeholder="name@beispiel.de" value="' + esc(lastEmail) + '"></label>' +
+      '<label id="lcodebox" hidden>Code aus der E-Mail<input type="text" id="lcode" inputmode="numeric" autocomplete="one-time-code" placeholder="6-stelliger Code"></label>' +
+      '<p id="lmsg" class="small muted">Wir schicken dir einen Code per E-Mail – kein Passwort nötig.</p><div class="row"><button class="pri" id="lnext">Weiter</button><button id="lback">Zurück</button></div>');
+    on('lback', start);
+    on('lnext', async function () {
+      var em = $('lemail').value.trim().toLowerCase(); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { msg('E-Mail prüfen', true); return; }
+      lastEmail = em; $('lnext').disabled = true;
+      try {
+        if (!sent) { msg('Code wird gesendet …'); await sendCode(em); sent = true; $('lcodebox').hidden = false; msg('Code an ' + em + ' gesendet. Er gilt eine Stunde – auch im Spam-Ordner nachsehen.'); $('lcode').focus(); }
+        else { if (!/^\d{6,10}$/.test($('lcode').value.trim())) { msg('Code aus der E-Mail eingeben', true); } else { msg('Prüfe …'); await verify(em, $('lcode').value); await afterLogin(); return; } }
+      } catch (e) { msg(e.message, true); }
+      $('lnext').disabled = false;
+    });
+  }
+  async function afterLogin() {
+    try { await rpc('bb_accept_invites', {}); } catch (e) {}
+    var r = null; try { r = await rpc('bb_my_request', { p: C.project }); } catch (e) { show('<p class="notice">' + esc(e.message) + '</p>'); return; }
+    if (r && r.status === 'mitglied') return fetchApp();
+    // v1.17: nur in einem weiteren Projekt Mitglied → dieses öffnen
+    var L = []; try { L = await rpc('bb_my_projects', {}) || []; } catch (e) {}
+    if (L.length) {
+      var go = function (x) { try { var list = JSON.parse(localStorage.getItem('bb-projects') || '[]').filter(function (y) { return y.id !== x.id; }); list.unshift({ id: x.id, name: x.name, home: false, source: 'online' }); localStorage.setItem('bb-projects', JSON.stringify(list)); localStorage.setItem('bb-project', x.id); } catch (e) {} fetchApp(); };
+      if (L.length === 1) return go(L[0]);
+      show('<p>Angemeldet als ' + esc(sess && sess.user ? sess.user.email : lastEmail) + '. Welches Projekt?</p><div class="col">' + L.map(function (x, i) { return '<button id="lp' + i + '">' + esc(x.name) + '</button>'; }).join('') + '</div>');
+      L.forEach(function (x, i) { on('lp' + i, function () { go(x); }); }); return;
+    }
+    status(r);
+  }
+  function wantLabel(k) { for (var i = 0; i < WANT.length; i++) if (WANT[i][0] === k) return WANT[i][1]; return k; }
+  function status(r) {
+    var em = sess && sess.user ? sess.user.email : lastEmail, body;
+    if (!r) body = '<p>Angemeldet als ' + esc(em) + ', aber noch ohne Zugang zu diesem Projekt.</p><p class="muted small">Stell eine Anfrage – ein Admin entscheidet.</p>';
+    else if (r.status === 'offen') body = '<p class="notice">Deine Anfrage als ' + esc(wantLabel(r.wanted)) + ' ist eingegangen (' + fmtDate(r.created_at) + ') und wartet auf einen Admin.</p><p class="muted small">Du bekommst keine automatische Nachricht. Schau später wieder hier vorbei und melde dich an – sobald du zugelassen bist, öffnet sich das Baubuch.</p>';
+    else if (r.status === 'abgelehnt') body = '<p class="notice">Deine Anfrage wurde am ' + fmtDate(r.decided_at) + ' abgelehnt.' + (r.note ? ' Notiz: „' + esc(r.note) + '“' : '') + '</p><p class="muted small">Eine neue Anfrage ist nach 14 Tagen möglich.</p>';
+    else body = '<p>Stand: ' + esc(r.status) + '</p>';
+    show(body + '<div class="row">' + (!r || r.status === 'offen' ? '<button class="pri" id="gatereq">' + (r ? 'Anfrage ändern' : 'Zugang anfragen') + '</button>' : '') + '<button id="gaterecheck">Erneut prüfen</button><button id="lout">Abmelden</button></div>');
+    on('gatereq', function () { request(r); }); on('gaterecheck', afterLogin); on('lout', logout);
+  }
+  function request(prev) {
+    var logged = !!sess, sent = false, em0 = logged && sess.user ? sess.user.email : lastEmail;
+    show('<span class="eyebrow">' + (prev ? 'Anfrage ändern' : 'Zugang anfragen') + '</span>' +
+      '<label>Name<input type="text" id="rname" maxlength="80" placeholder="Vor- und Nachname, ggf. Firma" value="' + esc(prev && prev.name) + '"></label>' +
+      '<label>E-Mail<input type="email" id="remail" autocomplete="email" placeholder="name@beispiel.de" value="' + esc(em0) + '"' + (logged ? ' disabled' : '') + '></label>' +
+      '<span class="eyebrow">Gewünschte Rolle</span>' + WANT.map(function (w) { return '<label class="radio"><input type="radio" name="want" value="' + w[0] + '"' + (((prev && prev.wanted) || 'viewer') === w[0] ? ' checked' : '') + '><span><b>' + w[1] + '</b> <small>– ' + w[2] + '</small></span></label>'; }).join('') +
+      '<label>Wofür? (optional)<textarea id="rreason" maxlength="500" placeholder="z. B. „Elektriker, trage die Leitungen ein“ oder „Gemeinde, möchte den Fortschritt sehen“">' + esc(prev && prev.reason) + '</textarea></label>' +
+      '<label id="rcodebox" hidden>Code aus der E-Mail<input type="text" id="rcode" inputmode="numeric" autocomplete="one-time-code" placeholder="6-stelliger Code"></label>' +
+      '<p id="lmsg" class="small muted">' + (logged ? '' : 'Zum Bestätigen deiner E-Mail-Adresse schicken wir dir einen Code.') + '</p>' +
+      '<div class="row"><button class="pri" id="rnext">' + (logged ? 'Anfrage senden' : 'Weiter') + '</button><button id="rback">Abbrechen</button></div>');
+    on('rback', function () { if (sess) afterLogin(); else start(); });
+    on('rnext', async function () {
+      var name = $('rname').value.trim(), em = $('remail').value.trim().toLowerCase(), want = (document.querySelector('input[name=want]:checked') || {}).value || 'viewer', reason = $('rreason').value.trim();
+      if (!name) { msg('Bitte Namen angeben', true); return; }
+      if (!sess && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { msg('E-Mail prüfen', true); return; }
+      $('rnext').disabled = true;
+      try {
+        if (!sess) {
+          if (!sent) { lastEmail = em; msg('Code wird gesendet …'); await sendCode(em); sent = true; $('rcodebox').hidden = false; msg('Code an ' + em + ' gesendet (auch im Spam-Ordner nachsehen). Eintragen und „Weiter“.'); $('rcode').focus(); $('rnext').disabled = false; return; }
+          if (!/^\d{6,10}$/.test($('rcode').value.trim())) { msg('Code aus der E-Mail eingeben', true); $('rnext').disabled = false; return; }
+          await verify(em, $('rcode').value);
+          try { await rpc('bb_accept_invites', {}); } catch (e) {}
+        }
+        var r = await rpc('bb_request_access', { p: C.project, p_name: name, p_wanted: want, p_reason: reason || null });
+        if (r === 'mitglied') return fetchApp();
+        if (r === 'abgelehnt') msg('Die letzte Anfrage wurde vor kurzem abgelehnt – neue Anfrage erst nach 14 Tagen.', true);
+        return afterLogin();
+      } catch (e) { msg(e.message, true); }
+      $('rnext').disabled = false;
+    });
+  }
+  /* ---- Start ---- */
+  async function main() {
+    if (!C || !C.url || /DEIN-PROJEKT/.test(C.url)) { show('<p class="notice">Diese Seite ist noch nicht eingerichtet: in <code>bb-config.js</code> Server-Adresse, öffentlichen Schlüssel und Projekt-ID eintragen (Anleitung im ZIP).</p>'); return; }
+    var cached = await dbGet('app');
+    if (cached && cached.html && !/[?&]startseite\b/.test(location.search)) { boot(cached.html, null); return; }
+    start();
+  }
+  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(function () {});
+  main();
+})();
+</script>
+</body>
+</html>
