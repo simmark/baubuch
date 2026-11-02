@@ -14,7 +14,7 @@
 <style>
 :root{--bg:#f1f2ee;--card:#fff;--ink:#1c2420;--muted:#5d6762;--line:#dcded8;--accent:#2f5e4b;--bad:#a8321e;--warnbg:#fbe9df}
 *{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-#lw{min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:max(24px,env(safe-area-inset-top)) 16px 24px}
+#lw{min-height:calc(100vh - 56px);display:flex;align-items:flex-start;justify-content:center;padding:max(24px,env(safe-area-inset-top)) 16px 24px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;max-width:540px;width:100%;display:flex;flex-direction:column;gap:12px;box-shadow:0 2px 12px #0000000d}
 h1{font-size:23px;margin:0}.logo{display:flex;align-items:center;gap:10px}.logo i{width:38px;height:38px;border-radius:10px;background:var(--accent);display:inline-block}
 p{margin:0}.muted{color:var(--muted);font-size:14px}.notice{background:var(--warnbg);border-left:4px solid #b4561d;padding:10px 12px;border-radius:8px}.bad{color:var(--bad)}
@@ -26,12 +26,13 @@ textarea{min-height:72px;resize:vertical}
 button{font:inherit;font-weight:700;min-height:44px;padding:0 16px;border-radius:12px;border:1px solid #c9ccc4;background:#fff;color:var(--ink);cursor:pointer}
 button.pri{background:var(--accent);border-color:var(--accent);color:#fff}button:disabled{opacity:.6}
 .small{font-size:13px}.eyebrow{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
-progress{width:100%}
+progress{width:100%}#lfoot a{color:var(--muted)}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#141816;--card:#1e2421;--ink:#e9ece9;--muted:#a3aca7;--line:#333a36;--warnbg:#3a2a20}input[type=text],input[type=email],textarea,button{background:#252b28;color:var(--ink);border-color:#3d4541}button.pri{background:#3d7a62;border-color:#3d7a62}}
 </style>
 </head>
 <body>
 <div id="lw"><div class="card" id="lcard"><p class="muted">Baubuch wird geladen …</p></div></div>
+<p class="muted small" id="lfoot" style="text-align:center;margin:0 0 20px"><a href="datenschutz.html">Datenschutz</a> · <a href="nutzung.html">Nutzungsbedingungen</a></p>
 <script src="bb-config.js"></script>
 <script>
 (function () {

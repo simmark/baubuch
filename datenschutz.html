@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Datenschutzerklärung – Baubuch</title>
+<!-- Öffentliche Seite (für Google-Zustimmungsbildschirm und Nutzer). Verantwortlicher: aus bb-config.js › legal. -->
+<style>
+:root{--bg:#f1f2ee;--card:#fff;--ink:#1c2420;--muted:#5d6762;--line:#dcded8;--accent:#2f5e4b;--warnbg:#fbe9df}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:760px;margin:0 auto;padding:max(20px,env(safe-area-inset-top)) 16px 40px}
+article{overflow-wrap:anywhere;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 22px}
+h1{font-size:24px;margin:0 0 4px}h2{font-size:18px;margin:26px 0 6px}p,ul{margin:8px 0}ul{padding-left:22px}li{margin:3px 0}
+.muted{color:var(--muted);font-size:14px}a{color:var(--accent)}.notice{background:var(--warnbg);border-left:4px solid #b4561d;padding:10px 12px;border-radius:8px}
+nav{margin:0 0 12px;font-size:14px}
+@media (prefers-color-scheme:dark){:root{--bg:#141816;--card:#1e2421;--ink:#e9ece9;--muted:#a3aca7;--line:#333a36;--warnbg:#3a2a20;--accent:#7fc3a6}}
+</style>
+</head>
+<body>
+<main>
+<nav><a href="./">← Zur Startseite</a> · <a href="nutzung.html">Nutzungsbedingungen</a></nav>
+<article>
+<h1>Datenschutzerklärung</h1>
+<p class="muted">Digitales Baubuch (Web-Anwendung zur Baudokumentation) · Stand: 02.11.2026</p>
+
+<h2>1. Wer ist verantwortlich?</h2>
+<p id="verantw">Verantwortlich ist der Betreiber dieser Anwendung. Kontakt: <a href="mailto:simon.mark91@gmail.com">simon.mark91@gmail.com</a></p>
+
+<h2>2. Worum geht es?</h2>
+<p>Das Baubuch ist ein digitales Bautagebuch für ein einzelnes Bauprojekt. Es dient dazu, Baufortschritt, Fotos, 360°-Aufnahmen, Pläne, Mängel, Leitungsverläufe und Notizen gemeinsam zu dokumentieren. Es ist <strong>keine öffentliche Anwendung</strong>: Zugang erhalten nur Personen, die der Betreiber ausdrücklich freigegeben hat. Die öffentlich erreichbare Startseite enthält nur die Anmeldung und die Möglichkeit, Zugang anzufragen.</p>
+
+<h2>3. Welche Daten werden verarbeitet?</h2>
+<ul>
+<li><strong>Anmeldung und Zugang:</strong> E-Mail-Adresse, Anmeldecode (einmalig, per E-Mail), Anzeigename, Rolle im Projekt (z. B. Betrachter, Erfasser, Editor, Admin). Bei einer Zugangsanfrage zusätzlich der angegebene Name, die gewünschte Rolle und die Begründung.</li>
+<li><strong>Projektinhalte:</strong> Pläne, Fotos, 360°-Aufnahmen, Videos, Markierungen, Notizen, Tagebucheinträge, Mängel- und Aufgabenlisten. Fotos und Videos können technische Metadaten enthalten (z. B. Aufnahmezeit, Kameratyp, ggf. Ort).</li>
+<li><strong>Änderungsprotokoll:</strong> Wer wann welchen Eintrag angelegt oder geändert hat (Anzeigename, Zeitpunkt), damit Änderungen nachvollziehbar bleiben.</li>
+<li><strong>Technische Daten:</strong> Eine zufällige Geräte-Kennung für den Abgleich, IP-Adresse und Zeitpunkt bei Zugriffen auf die Server der beteiligten Dienste.</li>
+</ul>
+<p>Es gibt <strong>keine Werbung, keine Analyse- oder Tracking-Werkzeuge</strong> und keine Weitergabe an Dritte zu deren eigenen Zwecken.</p>
+
+<h2>4. Zwecke und Rechtsgrundlagen</h2>
+<p>Die Verarbeitung dient der gemeinsamen Dokumentation und Koordination auf der Baustelle sowie der Verwaltung der Zugänge. Rechtsgrundlagen sind Art. 6 Abs. 1 lit. b DSGVO (Durchführung der Zusammenarbeit/Nutzung auf Ihre Anfrage) und Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an einer nachvollziehbaren Baudokumentation und an der Sicherheit der Anwendung). Soweit Sie Daten freiwillig angeben, gilt zusätzlich Art. 6 Abs. 1 lit. a DSGVO.</p>
+
+<h2>5. Eingesetzte Dienste (Empfänger)</h2>
+<ul>
+<li><strong>Supabase</strong> (Datenbank, Anmeldung, geschützter Dateispeicher, Serverfunktionen): speichert Konten, Projektdaten, Programmdatei und Protokolle. Zugriff ist durch Anmeldung und Rechte je Projekt beschränkt.</li>
+<li><strong>GitHub Pages</strong> liefert die öffentliche Startseite aus; dabei verarbeitet GitHub technisch die IP-Adresse der Besucher.</li>
+<li><strong>IONOS</strong> verwaltet die Domain (Namensauflösung).</li>
+<li><strong>Google Drive</strong> (nur wenn der Betreiber es verbindet): siehe Abschnitt 6.</li>
+</ul>
+<p>Mit den Anbietern bestehen, soweit erforderlich, Verträge zur Auftragsverarbeitung. Eine Verarbeitung außerhalb der EU/des EWR kann bei diesen Anbietern nicht vollständig ausgeschlossen werden; sie stützen sich dafür auf Standardvertragsklauseln bzw. Angemessenheitsbeschlüsse.</p>
+
+<h2>6. Google Drive (Originaldateien)</h2>
+<p>Der Betreiber (Admin) kann die Anwendung mit seinem Google-Konto verbinden, damit Originaldateien (Fotos, 360°-Aufnahmen, Videos) in einem eigenen Ordner seines Google Drive liegen. Dafür fordert die Anwendung ausschließlich den Zugriffsbereich <code>https://www.googleapis.com/auth/drive.file</code> sowie die Basisangaben <code>openid</code> und <code>email</code> an.</p>
+<ul>
+<li>Die Anwendung kann damit <strong>nur Dateien und Ordner sehen und verändern, die sie selbst angelegt hat</strong> (bzw. die Sie ihr ausdrücklich zugänglich machen) – nicht den übrigen Inhalt des Drive.</li>
+<li>Der von Google ausgestellte Zugangsschlüssel (Refresh-Token) wird ausschließlich serverseitig in der geschützten Datenbank des Projekts gespeichert und ist für Nutzer der Anwendung nicht lesbar. Dateien werden nur von der Serverfunktion im Namen angemeldeter, berechtigter Projektmitglieder abgerufen oder abgelegt.</li>
+<li>Die Anwendung gibt Google-Daten nicht an Dritte weiter, nutzt sie nicht für Werbung und nicht zum Trainieren von Modellen.</li>
+<li>Die Nutzung und Weitergabe von Informationen, die von Google-APIs empfangen werden, erfolgt in Übereinstimmung mit der <a href="https://developers.google.com/terms/api-services-user-data-policy" rel="noopener">Google API Services User Data Policy</a>, einschließlich der Anforderungen zur eingeschränkten Nutzung (Limited Use).</li>
+<li><strong>Widerruf:</strong> Die Verbindung kann jederzeit in der Anwendung getrennt oder in Ihrem Google-Konto unter <a href="https://myaccount.google.com/permissions" rel="noopener">myaccount.google.com/permissions</a> entzogen werden.</li>
+</ul>
+
+<h2>7. Speicherung im Browser</h2>
+<p>Die Anwendung speichert Projektdaten, Einstellungen und das Programm lokal im Browser des Geräts (IndexedDB, localStorage, Zwischenspeicher/Service Worker), damit sie auch ohne Netz auf der Baustelle funktioniert. Es werden keine Werbe- oder Tracking-Cookies gesetzt. Beim Abmelden bzw. Löschen der Website-Daten im Browser wird dieser lokale Speicher entfernt.</p>
+
+<h2>8. Speicherdauer</h2>
+<p>Projektdaten werden für die Dauer des Bauprojekts und der anschließenden Dokumentationspflichten gespeichert. Konten und Zugangsanfragen werden gelöscht, wenn der Zugang nicht mehr benötigt wird. Der Betreiber kann Inhalte und Zugänge jederzeit entfernen.</p>
+
+<h2>9. Ihre Rechte</h2>
+<p>Sie haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit und Widerspruch (Art. 15–21 DSGVO) sowie auf Beschwerde bei einer Datenschutz-Aufsichtsbehörde. Eine erteilte Einwilligung können Sie jederzeit mit Wirkung für die Zukunft widerrufen. Wenden Sie sich dazu formlos an die oben genannte Kontaktadresse.</p>
+
+<h2>10. Änderungen</h2>
+<p>Diese Erklärung wird angepasst, wenn sich die Anwendung oder die Rechtslage ändert. Maßgeblich ist die jeweils hier veröffentlichte Fassung.</p>
+</article>
+</main>
+<script src="bb-config.js"></script>
+<script>
+(function () {
+  try {
+    var L = (window.BB_CONFIG || {}).legal; if (!L || !L.name || /VOR- UND NACHNAME/.test(L.name)) return;
+    var e = document.getElementById('verantw'); if (!e) return;
+    var t = document.createTextNode('Verantwortlich ist ' + L.name + (L.address ? ', ' + L.address : '') + '. Kontakt: ');
+    var a = document.createElement('a'); a.href = 'mailto:' + (L.email || 'simon.mark91@gmail.com'); a.textContent = L.email || 'simon.mark91@gmail.com';
+    e.textContent = ''; e.appendChild(t); e.appendChild(a);
+  } catch (x) {}
+})();
+</script>
+</body>
+</html>
